@@ -44,7 +44,7 @@ func (scr *screen) Capture() error {
 		"ffplay",
 		"-f", "x11grab",
 		"-i", fmt.Sprintf("%s+%v,%v", xdisplay, scr.x, scr.y),
-		"-s", fmt.Sprintf("%vx%v", scr.width, scr.height),
+		"-video_size", fmt.Sprintf("%vx%v", scr.width, scr.height),
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
