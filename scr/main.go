@@ -1,7 +1,7 @@
 /*
-capture-screen captures one of the active screens. It is useful when you want
-to share a single screen from an application that only allows to share a window
-or the full desktop (all the screens).
+scr captures one of the active screens. It is useful when you want to share a
+single screen from an application that only allows to share a window or the
+full desktop (all the screens).
 
 It depends on xrandr and ffplay.
 */
@@ -186,7 +186,7 @@ func getScreens() ([]*screen, error) {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: capture-screen [flags] [screen]")
+	fmt.Fprintln(os.Stderr, "usage: scr [flags] [screen]")
 	fmt.Fprintln(os.Stderr, "flags:")
 	flag.PrintDefaults()
 }
