@@ -15,6 +15,7 @@ import (
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
 )
 
 func main() {
@@ -53,7 +54,12 @@ func main() {
 }
 
 func mdHandler(filename string) http.HandlerFunc {
-	md := goldmark.New(goldmark.WithExtensions(extension.GFM))
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+	)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%v %v %v", r.Method, r.URL.Path, r.RemoteAddr)
