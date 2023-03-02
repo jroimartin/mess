@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	httpAddr = flag.String("http", "127.0.0.1:6060", "HTTP service address")
+	httpAddr = flag.String("http", "127.0.0.1:0", "HTTP service address")
 	openURL  = flag.Bool("open", false, "open the URL in the default web browser")
 
 	filename string
