@@ -14,16 +14,13 @@ import (
 	"os"
 
 	"github.com/yuin/goldmark"
-)
-
-var (
-	httpAddr = flag.String("http", "127.0.0.1:0", "HTTP service address")
-	openURL  = flag.Bool("open", false, "open the URL in the default web browser")
-
-	filename string
+	"github.com/yuin/goldmark/extension"
 )
 
 func main() {
+	httpAddr := flag.String("http", "127.0.0.1:0", "HTTP service address")
+	openURL := flag.Bool("open", false, "open the URL in the default web browser")
+
 	flag.Usage = usage
 	flag.Parse()
 
@@ -31,7 +28,7 @@ func main() {
 		usage()
 		os.Exit(2)
 	}
-	filename = flag.Arg(0)
+	filename := flag.Arg(0)
 
 	l, err := net.Listen("tcp", *httpAddr)
 	if err != nil {
@@ -48,34 +45,38 @@ func main() {
 		}
 	}
 
-	http.HandleFunc("/", mdHandle)
+	http.Handle("/", mdHandler(filename))
 
 	if err := http.Serve(l, nil); err != nil {
 		log.Fatalf("error: serve: %v", err)
 	}
 }
 
-func mdHandle(w http.ResponseWriter, r *http.Request) {
-	log.Printf("%v %v %v", r.Method, r.URL.Path, r.RemoteAddr)
+func mdHandler(filename string) http.HandlerFunc {
+	md := goldmark.New(goldmark.WithExtensions(extension.GFM))
 
-	source, err := os.ReadFile(filename)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error: read file: %v\n", err)
-		return
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%v %v %v", r.Method, r.URL.Path, r.RemoteAddr)
+
+		source, err := os.ReadFile(filename)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "error: read file: %v\n", err)
+			return
+		}
+
+		var buf bytes.Buffer
+		if err := md.Convert(source, &buf); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "error: convert md: %v\n", err)
+			return
+		}
+
+		fmt.Fprintln(w, "<html>")
+		fmt.Fprintln(w, "<head><title>md</title></head>")
+		fmt.Fprintf(w, "<body>\n%v\n</body>\n", buf.String())
+		fmt.Fprintln(w, "</html>")
 	}
-
-	var buf bytes.Buffer
-	if err := goldmark.Convert(source, &buf); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error: convert md: %v\n", err)
-		return
-	}
-
-	fmt.Fprintln(w, "<html>")
-	fmt.Fprintln(w, "<head><title>md</title></head>")
-	fmt.Fprintf(w, "<body>\n%v\n</body>\n", buf.String())
-	fmt.Fprintln(w, "</html>")
 }
 
 func usage() {
