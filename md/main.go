@@ -12,7 +12,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"github.com/yuin/goldmark"
@@ -32,64 +34,106 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	if flag.NArg() != 1 {
+	var path string
+	switch flag.NArg() {
+	case 0:
+		path = "."
+	case 1:
+		path = flag.Arg(0)
+	default:
 		usage()
 		os.Exit(2)
 	}
-	filename := flag.Arg(0)
+
+	dir, file, err := splitPath(path)
+	if err != nil {
+		log.Fatalf("error: split path: %v", err)
+	}
 
 	l, err := net.Listen("tcp", *httpAddr)
 	if err != nil {
 		log.Fatalf("error: listen: %v", err)
 	}
 
-	url := fmt.Sprintf("http://%v", l.Addr())
+	fileURL, err := url.Parse("http://" + l.Addr().String())
+	if err != nil {
+		log.Fatalf("error: parse url: %v", err)
+	}
+	fileURL = fileURL.JoinPath(file)
 
-	log.Printf("Open your web browser and visit %v", url)
+	log.Printf("Open your web browser and visit %v", fileURL)
 
 	if *openURL {
-		if err := browse(url); err != nil {
+		if err := browse(fileURL.String()); err != nil {
 			log.Fatalf("error: browse: %v", err)
 		}
 	}
 
-	http.Handle("/", mdHandler(filename))
-
-	if err := http.Serve(l, nil); err != nil {
-		log.Fatalf("error: serve: %v", err)
-	}
-}
-
-func mdHandler(filename string) http.HandlerFunc {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
 		),
 	)
+	mh := MarkdownHandler{
+		h:   http.FileServer(http.Dir(dir)),
+		md:  md,
+		dir: dir,
+	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%v %v %v", r.RemoteAddr, r.Method, r.URL.Path)
+	http.Handle("/", mh)
 
-		source, err := os.ReadFile(filename)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "error: read file: %v\n", err)
-			return
-		}
-
-		var buf bytes.Buffer
-		if err := md.Convert(source, &buf); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "error: convert md: %v\n", err)
-			return
-		}
-
-		mainTemplate.Execute(w, buf.String())
+	if err := http.Serve(l, nil); err != nil {
+		log.Fatalf("error: serve: %v", err)
 	}
 }
 
+func splitPath(path string) (dir, file string, err error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return "", "", fmt.Errorf("stat: %v", err)
+	}
+
+	if fileInfo.IsDir() {
+		return path, "", nil
+	} else {
+		dir, file = filepath.Split(path)
+		return dir, file, nil
+	}
+}
+
+type MarkdownHandler struct {
+	h   http.Handler
+	md  goldmark.Markdown
+	dir string
+}
+
+func (mh MarkdownHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Printf("%v %v %v", r.RemoteAddr, r.Method, r.URL.Path)
+
+	if filepath.Ext(r.URL.Path) != ".md" {
+		mh.h.ServeHTTP(w, r)
+		return
+	}
+
+	source, err := os.ReadFile(filepath.Join(mh.dir, r.URL.Path))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "error: read file: %v\n", err)
+		return
+	}
+
+	var buf bytes.Buffer
+	if err := mh.md.Convert(source, &buf); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "error: convert md: %v\n", err)
+		return
+	}
+
+	mainTemplate.Execute(w, buf.String())
+}
+
 func usage() {
-	fmt.Printf("usage: %v [flags] file.md\n", os.Args[0])
+	fmt.Printf("usage: %v [flags] [path]\n", os.Args[0])
 	flag.PrintDefaults()
 }
