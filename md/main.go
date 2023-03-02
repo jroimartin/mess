@@ -6,17 +6,24 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"text/template"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 )
+
+//go:embed main.tmpl
+var mainTemplateHTML string
+
+var mainTemplate = template.Must(template.New("main").Parse(mainTemplateHTML))
 
 func main() {
 	httpAddr := flag.String("http", "127.0.0.1:0", "HTTP service address")
@@ -62,7 +69,7 @@ func mdHandler(filename string) http.HandlerFunc {
 	)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%v %v %v", r.Method, r.URL.Path, r.RemoteAddr)
+		log.Printf("%v %v %v", r.RemoteAddr, r.Method, r.URL.Path)
 
 		source, err := os.ReadFile(filename)
 		if err != nil {
@@ -78,10 +85,7 @@ func mdHandler(filename string) http.HandlerFunc {
 			return
 		}
 
-		fmt.Fprintln(w, "<html>")
-		fmt.Fprintln(w, "<head><title>md</title></head>")
-		fmt.Fprintf(w, "<body>\n%v\n</body>\n", buf.String())
-		fmt.Fprintln(w, "</html>")
+		mainTemplate.Execute(w, buf.String())
 	}
 }
 
