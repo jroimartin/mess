@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -64,10 +65,17 @@ func mdHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := goldmark.Convert(source, w); err != nil {
+	var buf bytes.Buffer
+	if err := goldmark.Convert(source, &buf); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error: convert md: %v\n", err)
+		return
 	}
+
+	fmt.Fprintln(w, "<html>")
+	fmt.Fprintln(w, "<head><title>md</title></head>")
+	fmt.Fprintf(w, "<body>\n%v\n</body>\n", buf.String())
+	fmt.Fprintln(w, "</html>")
 }
 
 func usage() {
