@@ -1,7 +1,4 @@
-// md previews a given markdown file.
-//
-// It starts an HTTP server that renders the specified markdown file every time
-// "/" is requested.
+// md helps to preview markdown files.
 package main
 
 import (
