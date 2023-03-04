@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e -u
+
+if [[ $# -ne 2 ]]; then
+	echo "usage: $0 <dst> <name>" >&2
+	exit 2
+fi
+dst=$1
+name=$2
+
+if [[ $EUID -ne 0 ]]; then
+	echo 'please, run as root'
+	exit 1
+fi
+
+ts=$(date +%Y%m%d%H%M%S)
+backup_dir="${dst}/${ts}-${name}"
+
+echo "Backup directory: ${backup_dir}" >&2
+mkdir -p "${backup_dir}"
+
+echo 'Copying /home' >&2
+rsync -a /home "${backup_dir}"
+
+echo 'Done' >&2
