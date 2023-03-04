@@ -86,6 +86,11 @@ func main() {
 }
 
 func splitPath(path string) (dir, file string, err error) {
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return "", "", fmt.Errorf("abs: %v", err)
+	}
+
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		return "", "", fmt.Errorf("stat: %v", err)
