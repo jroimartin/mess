@@ -47,6 +47,12 @@ func main() {
 		log.Fatalf("error: split path: %v", err)
 	}
 
+	log.Printf("Working directory: %v", dir)
+
+	if file != "" {
+		log.Printf("File: %v", file)
+	}
+
 	l, err := net.Listen("tcp", *httpAddr)
 	if err != nil {
 		log.Fatalf("error: listen: %v", err)
@@ -95,6 +101,9 @@ func splitPath(path string) (dir, file string, err error) {
 		return path, "", nil
 	} else {
 		dir, file = filepath.Split(path)
+		if dir == "" {
+			dir = "."
+		}
 		return dir, file, nil
 	}
 }
