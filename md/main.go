@@ -75,7 +75,9 @@ func render(path string) error {
 		return fmt.Errorf("convert md: %w", err)
 	}
 
-	mainTemplate.Execute(os.Stdout, buf.String())
+	if err := mainTemplate.Execute(os.Stdout, buf.String()); err != nil {
+		return fmt.Errorf("template execute: %w", err)
+	}
 
 	return nil
 }
@@ -152,7 +154,10 @@ func (mh MarkdownHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mainTemplate.Execute(w, buf.String())
+	if err := mainTemplate.Execute(w, buf.String()); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "template execute: %v\n", err)
+	}
 }
 
 func splitPath(path string) (dir, file string, err error) {
