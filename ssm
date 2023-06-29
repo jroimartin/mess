@@ -1,0 +1,18 @@
+#!/bin/bash
+
+case $# in
+	1)
+		aws-vault exec "$1" -- \
+			  aws ec2 describe-instances \
+			  --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==`Name`]|[0].Value,State.Name]' \
+			  --output text | column -t -s $'\t'
+		;;
+	2)
+		aws-vault exec "$1" -- \
+			  aws ssm start-session --target "$2"
+		;;
+	*)
+		echo "usage: $(basename "$0") profile [instance-id]" >&2
+		exit 2
+		;;
+esac
