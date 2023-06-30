@@ -33,5 +33,6 @@ if [[ $1 == "-" ]]; then
 	exit
 fi
 
-kubectl config current-context > "$LAST_CTX_FILE"
+cur_ctx=$(kubectl config current-context)
 kubectl config use-context "$1"
+echo $cur_ctx > "$LAST_CTX_FILE"
