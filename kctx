@@ -30,7 +30,8 @@ if [[ $1 == "-" ]]; then
 	cur_ctx=$(kubectl config current-context)
 	kubectl config use-context "$last_ctx"
 	echo $cur_ctx > "$LAST_CTX_FILE"
-else
-	kubectl config current-context > "$LAST_CTX_FILE"
-	kubectl config use-context "$1"
+	exit
 fi
+
+kubectl config current-context > "$LAST_CTX_FILE"
+kubectl config use-context "$1"
