@@ -1,0 +1,65 @@
+#!/bin/bash
+
+set -e -u
+
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME}/.config/kctx"
+LAST_FILE="${CONFIG_HOME}/last"
+
+get_last_ctx ()
+{
+	if [[ ! -f $LAST_FILE ]]; then
+		echo 'error: unknown last context' >&2
+		return 1
+	fi
+
+	local last_ctx=$(cat "$LAST_FILE")
+	if [[ -z $last_ctx ]]; then
+		echo 'error: last context is empty' >&2
+		return 1
+	fi
+
+	echo $last_ctx
+}
+
+set_ctx ()
+{
+	local ctx=$1
+
+	if [[ $ctx =~ ^- ]]; then
+		echo 'error: invalid context' >&2
+		return 1
+	fi
+
+	local cur=$(kubectl config current-context)
+	kubectl config use-context "$ctx"
+	echo $cur > "$LAST_FILE"
+}
+
+main ()
+{
+	if [[ $# > 1 ]]; then
+		echo "usage: $(basename $0) [context]" >&2
+		exit 2
+	fi
+
+	local ctx=${1:-}
+
+	if [[ ! -d $CONFIG_HOME ]]; then
+		mkdir -p "$CONFIG_HOME"
+	fi
+
+	if [[ -z $ctx ]]; then
+		kubectl config get-contexts
+		exit
+	fi
+
+	if [[ $ctx == '-' ]]; then
+		ctx=$(get_last_ctx)
+		set_ctx "$ctx"
+		exit
+	fi
+
+	set_ctx "$ctx"
+}
+
+main "$@"
