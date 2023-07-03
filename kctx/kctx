@@ -25,13 +25,8 @@ set_ctx ()
 {
 	local ctx=$1
 
-	if [[ $ctx =~ ^- ]]; then
-		echo 'error: invalid context' >&2
-		return 1
-	fi
-
 	local cur=$(kubectl config current-context)
-	kubectl config use-context "$ctx"
+	kubectl config use-context -- "$ctx"
 	echo $cur > "$LAST_FILE"
 }
 
