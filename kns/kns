@@ -8,13 +8,13 @@ LAST_FILE="${CONFIG_HOME}/last"
 get_last_ns ()
 {
 	if [[ ! -f $LAST_FILE ]]; then
-		echo 'error: unknown last context' >&2
+		echo 'error: unknown last namespace' >&2
 		return 1
 	fi
 
 	local last_ns=$(cat "$LAST_FILE")
 	if [[ -z $last_ns ]]; then
-		echo 'error: last context is empty' >&2
+		echo 'error: last namespace is empty' >&2
 		return 1
 	fi
 
