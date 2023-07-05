@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -e -u
+
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME}/.config/kns"
+LAST_FILE="${CONFIG_HOME}/last"
+
+get_last_ns ()
+{
+	if [[ ! -f $LAST_FILE ]]; then
+		echo 'error: unknown last context' >&2
+		return 1
+	fi
+
+	local last_ns=$(cat "$LAST_FILE")
+	if [[ -z $last_ns ]]; then
+		echo 'error: last context is empty' >&2
+		return 1
+	fi
+
+	echo $last_ns
+}
+
+set_ns ()
+{
+	local ns=$1
+
+	local cur=$(kubectl config view --minify -o jsonpath='{.contexts[0].context.namespace}')
+	kubectl config set-context --current --namespace="$ns"
+	echo "Switched to namespace \"${ns}\"."
+	echo $cur > "$LAST_FILE"
+}
+
+main ()
+{
+	if [[ $# > 1 ]]; then
+		echo "usage: $(basename $0) [namespace]" >&2
+		exit 2
+	fi
+
+	local ns=${1:-}
+
+	if [[ ! -d $CONFIG_HOME ]]; then
+		mkdir -p "$CONFIG_HOME"
+	fi
+
+	if [[ -z $ns ]]; then
+		kubectl config get-contexts
+		exit
+	fi
+
+	if [[ $ns == '-' ]]; then
+		ns=$(get_last_ns)
+		set_ns "$ns"
+		exit
+	fi
+
+	set_ns "$ns"
+}
+
+main "$@"

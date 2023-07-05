@@ -1,0 +1,14 @@
+_kns_completion()
+{
+	[[ $COMP_CWORD != 1 ]] && return 0;
+
+	local cur="${COMP_WORDS[COMP_CWORD]}"
+	local namespaces=$(kubectl get namespaces -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')
+
+	local IFS=$'\n'
+	COMPREPLY=( $(compgen -W "${namespaces[*]}" -- $cur) )
+
+	return 0
+}
+
+complete -F _kns_completion kns
