@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"net/http"
@@ -18,6 +17,7 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/renderer/html"
 )
 
 //go:embed main.tmpl
@@ -30,6 +30,9 @@ var (
 		goldmark.WithExtensions(extension.GFM),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
+		),
+		goldmark.WithRendererOptions(
+			html.WithUnsafe(),
 		),
 	)
 )
@@ -52,34 +55,9 @@ func main() {
 		os.Exit(2)
 	}
 
-	var err error
-	if path == "-" {
-		err = render(path)
-	} else {
-		err = serve(path, *httpAddr, *openURL)
-	}
-
-	if err != nil {
+	if err := serve(path, *httpAddr, *openURL); err != nil {
 		log.Fatalf("error: %v", err)
 	}
-}
-
-func render(path string) error {
-	source, err := io.ReadAll(os.Stdin)
-	if err != nil {
-		return fmt.Errorf("read all: %w", err)
-	}
-
-	var buf bytes.Buffer
-	if err := md.Convert(source, &buf); err != nil {
-		return fmt.Errorf("convert md: %w", err)
-	}
-
-	if err := mainTemplate.Execute(os.Stdout, buf.String()); err != nil {
-		return fmt.Errorf("template execute: %w", err)
-	}
-
-	return nil
 }
 
 func serve(path, httpAddr string, openURL bool) error {
@@ -180,5 +158,4 @@ func splitPath(path string) (dir, file string, err error) {
 func usage() {
 	fmt.Fprintf(os.Stderr, "usage: %v [flags] [path]\n", os.Args[0])
 	flag.PrintDefaults()
-	fmt.Fprintf(os.Stderr, "\nIf path is - stdin and stdout are used.\n")
 }
