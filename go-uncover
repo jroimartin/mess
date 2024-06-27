@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 tmpfile=$(mktemp /tmp/gocover-XXXXXXXXXX)
 go test -coverprofile=$tmpfile "$@"
 uncover $tmpfile
