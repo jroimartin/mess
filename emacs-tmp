@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eu
+
+if [[ $# -ne 1 ]]; then
+	echo "usage: $0 tmpdir" >&2
+	exit 2
+fi
+tmpdir=$1
+
+if [[ ! -d ${tmpdir} ]]; then
+	mkdir "${tmpdir}"
+	echo '(fido-mode)' > "${tmpdir}/init.el"
+fi
+
+emacs --init-directory="${tmpdir}"
