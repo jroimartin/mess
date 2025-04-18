@@ -10,7 +10,9 @@ tmpdir=$1
 
 if [[ ! -d ${tmpdir} ]]; then
 	mkdir "${tmpdir}"
-	echo '(fido-mode)' > "${tmpdir}/init.el"
+	(echo ';;; -*- lexical-binding: t -*-'; \
+	 echo '(fido-mode)') \
+		> "${tmpdir}/init.el"
 fi
 
 emacs --init-directory="${tmpdir}"
