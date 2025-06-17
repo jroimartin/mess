@@ -2,7 +2,7 @@
 
 set -eu
 
-EMACS="${EMACS:-emacs}"
+EMACS="${EMACS:-${HOME}/src/emacs/src/emacs}"
 
 if [[ $# -ne 1 ]]; then
 	echo "usage: $0 tmpdir" >&2
