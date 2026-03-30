@@ -17,4 +17,8 @@ if [[ ! -d ${tmpdir} ]]; then
 		> "${tmpdir}/init.el"
 fi
 
-${EMACS} --init-directory="${tmpdir}"
+${EMACS} --init-directory="${tmpdir}" \
+	 --no-site-file \
+	 --no-site-lisp \
+	 --no-splash \
+	 --no-x-resources
