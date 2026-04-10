@@ -4,11 +4,13 @@ set -eu
 
 EMACS="${EMACS:-${HOME}/src/emacs/src/emacs}"
 
-if [[ $# -ne 1 ]]; then
+if [[ $# -eq 0 ]]; then
 	echo "usage: $0 tmpdir" >&2
 	exit 2
 fi
+
 tmpdir=$1
+shift
 
 if [[ ! -d ${tmpdir} ]]; then
 	mkdir "${tmpdir}"
@@ -21,4 +23,5 @@ ${EMACS} --init-directory="${tmpdir}" \
 	 --no-site-file \
 	 --no-site-lisp \
 	 --no-splash \
-	 --no-x-resources
+	 --no-x-resources \
+	 "$@"
