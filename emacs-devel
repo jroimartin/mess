@@ -5,7 +5,7 @@ set -eu
 EMACS="${EMACS:-${HOME}/src/emacs/src/emacs}"
 
 if [[ $# -eq 0 ]]; then
-	echo "usage: $0 tmpdir" >&2
+	echo "usage: $0 TMPDIR [OPTION-OR-FILENAME]..." >&2
 	exit 2
 fi
 
