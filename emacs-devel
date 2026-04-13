@@ -5,21 +5,21 @@ set -eu
 EMACS="${EMACS:-${HOME}/src/emacs/src/emacs}"
 
 if [[ $# -eq 0 ]]; then
-	echo "usage: $0 TMPDIR [OPTION-OR-FILENAME]..." >&2
+	echo "usage: $0 INIT-DIRECTORY [OPTION-OR-FILENAME]..." >&2
 	exit 2
 fi
 
-tmpdir=$1
+initdir=$1
 shift
 
-if [[ ! -d ${tmpdir} ]]; then
-	mkdir "${tmpdir}"
+if [[ ! -d ${initdir} ]]; then
+	mkdir "${initdir}"
 	(echo ';;; -*- lexical-binding: t -*-'; \
 	 echo '(fido-mode)') \
-		> "${tmpdir}/init.el"
+		> "${initdir}/init.el"
 fi
 
-${EMACS} --init-directory="${tmpdir}" \
+${EMACS} --init-directory="${initdir}" \
 	 --no-site-file \
 	 --no-site-lisp \
 	 --no-splash \
