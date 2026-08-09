@@ -4,6 +4,22 @@ set -eu
 
 EMACS="${EMACS:-${HOME}/src/emacs/src/emacs}"
 
+init_completion () {
+	cat <<EOF
+(setopt completion-eager-display t)
+(setopt completion-eager-update t)
+(setopt completion-auto-help t)
+(setopt completion-auto-select 'second-tab)
+(with-eval-after-load 'minibuffer
+  (add-to-list 'completion-styles 'flex t))
+(setopt completion-ignore-case t)
+(setopt read-file-name-completion-ignore-case t)
+(setopt read-buffer-completion-ignore-case t)
+(setopt completions-max-height 10)
+(setopt completion-show-help nil)
+EOF
+}
+
 if [[ $# -eq 0 ]]; then
 	echo "usage: $0 INIT-DIRECTORY [OPTION-OR-FILENAME]..." >&2
 	exit 2
@@ -14,9 +30,8 @@ shift
 
 if [[ ! -d ${initdir} ]]; then
 	mkdir "${initdir}"
-	(echo ';;; -*- lexical-binding: t -*-'; \
-	 echo '(fido-mode)') \
-		> "${initdir}/init.el"
+	(echo ';;; -*- lexical-binding: t -*-'
+	 init_completion) > "${initdir}/init.el"
 fi
 
 ${EMACS} --init-directory="${initdir}" \
