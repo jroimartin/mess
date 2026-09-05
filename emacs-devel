@@ -6,8 +6,8 @@ EMACS="${EMACS:-${HOME}/src/emacs/src/emacs}"
 
 init_completion () {
 	cat <<EOF
-(setopt completion-eager-display t)
-(setopt completion-eager-update t)
+(setopt completion-eager-display nil)
+(setopt completion-eager-update nil)
 (setopt completion-auto-help t)
 (setopt completion-auto-select 'second-tab)
 (with-eval-after-load 'minibuffer
